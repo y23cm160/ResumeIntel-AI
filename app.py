@@ -19,47 +19,60 @@ with st.sidebar:
     analyze_btn = st.button("🚀 Analyze & Rewrite")
 
 # 4. Main Results Dashboard (Expected Outcome: Clean Results Dashboard)
+# 4. Main Results Dashboard (Data Pipeline Integration)
 if analyze_btn:
     if resume_file and jd_text:
-        # Layout for Scores
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            st.subheader("✅ Fit Score")
-            # Expected Outcome: Overall fit score
-            st.metric(label="ATS Compatibility", value="78%", delta="Needs Improvement")
+        with st.spinner("Pipeline Active: Parsing and Analyzing..."):
             
-        with col2:
-            st.subheader("🧠 AI Career Reasoning")
-            # AI Core Constraint: Holistic reasoning about career narrative
-            st.write("**Justification:** The candidate has strong technical skills but the narrative fails to quantify impact in cloud security roles.")
+            # --- STEP 1: Execute Member 2's Parser ---
+            # Using the 'process_everything' function Member 2 provided
+            from parser_logic import process_everything
+            parser_results = process_everything(resume_file)
+            resume_text = parser_results["cleaned_data"]
+            
+            # Display Contact Info in the sidebar or a small box (Member 3 UI touch)
+            st.sidebar.success(f"Extracted: {parser_results['email']}")
 
-        st.markdown("---")
+            # --- STEP 2: Execute Member 1's AI Brain ---
+            # Passing the cleaned text to Member 1's AI logic
+            analysis = get_ai_analysis(resume_text, jd_text)
+            
+            # --- STEP 3: Display Results (Dynamic Data) ---
+            col1, col2 = st.columns([1, 2])
+            
+            with col1:
+                st.subheader("🎯 Fit Score")
+                # Use the 'score' key from Member 1's JSON
+                st.metric(label="ATS Compatibility", value=f"{analysis['score']}%")
+                
+            with col2:
+                st.subheader("🧠 AI Career Reasoning")
+                # Use the 'justification' key from Member 1's JSON
+                st.write(f"**Justification:** {analysis['justification']}")
 
-        # 5. ATS Keyword Gap Analysis
-        st.subheader("🔍 ATS Keyword Gap Analysis")
-        present, missing = st.columns(2)
-        with present:
-            st.success("**Skills Found:** Python, AWS, IAM")
-        with missing:
-            st.error("**Missing Keywords:** SIEM, Terraform, SOC2")
+            st.markdown("---")
 
-        st.markdown("---")
+            # 5. ATS Keyword Gap Analysis (Dynamic)
+            st.subheader("🔍 ATS Keyword Gap Analysis")
+            present, missing = st.columns(2)
+            with present:
+                # Use 'found_keywords' from Member 1
+                st.success(f"**Skills Found:** {', '.join(analysis['found_keywords'])}")
+            with missing:
+                # Use 'missing_keywords' from Member 1
+                st.error(f"**Missing Keywords:** {', '.join(analysis['missing_keywords'])}")
 
-        # 6. AI-Rewritten Bullets (Expected Outcome: Before/After view)
-        st.subheader("✍️ AI-Rewritten Suggestions")
-        st.info("Focusing on impact-driven metrics rather than just tasks.")
-        
-        # Table for comparison
-        comparison_data = [
-            {"Before (Task)": "Managed cloud incidents.", 
-             "After (Impact)": "Orchestrated response for 15+ high-priority incidents, reducing downtime by 22%."}
-        ]
-        st.table(comparison_data)
+            st.markdown("---")
+
+            # 6. AI-Rewritten Bullets (Dynamic Table)
+            st.subheader("✍️ AI-Rewritten Suggestions")
+            st.info("AI Core Constraint: Evaluating career narrative coherence.")
+            
+            # Pass the 'rewrites' list from Member 1 directly into the table
+            st.table(analysis['rewrites'])
 
     else:
         st.warning("Please upload a PDF resume and paste a Job Description to begin.")
-
-# 7. Footer
+        
 st.markdown("---")
 st.caption("DeployIt 2026 | Team: AI Resume Mentor")
