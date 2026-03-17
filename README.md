@@ -32,8 +32,8 @@ LLM Engine: Gemini 1.5 Flash (Google Generative AI API)
 Frontend UI: Gradio
 PDF Processing: pdfplumber
 Data Structuring: JSON mode
-🏗️ System Architecture
 
+🏗️ System Architecture
 The system follows a modular design:
 
 📂 Parser (parser_logic.py)
