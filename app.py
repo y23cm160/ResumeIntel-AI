@@ -1,92 +1,95 @@
-import streamlit as st
-import json
-from parser_logic import process_everything, analyze_keyword_gap  # Member 2
-from ai_logic import get_ai_analysis                          # Member 1
+import gradio as gr
+from parser_logic import process_everything, analyze_keyword_gap  # Member 2's code
+from ai_logic import get_ai_analysis                          # Member 1's code
 
-# 1. Page Configuration
-st.set_page_config(page_title="AI Resume Mentor | DeployIt 2026", layout="wide")
+# 1. The Bridge Function: This connects the UI to your Logic
+def run_analysis(resume_file, jd_text):
+    if resume_file is None or not jd_text.strip():
+        return 0, "N/A", "N/A", "Please upload a file and enter JD", "N/A", "N/A", "N/A", "N/A", ""
 
-# 2. Header Section
-st.title("🚀 AI Resume Analyser & Career Mentor")
-st.markdown("### Get ATS scores, skill gaps, and career insights instantly.")
-st.markdown("---")
+    try:
+        # --- EXECUTE PARSER (Member 2) ---
+        data = process_everything(resume_file)
+        gap = analyze_keyword_gap(data["cleaned_data"], jd_text)
+        
+        matched_str = ", ".join(gap["matched_skills"]) if gap["matched_skills"] else "None"
+        missing_str = ", ".join(gap["missing_skills"]) if gap["missing_skills"] else "None"
 
-# 3. Sidebar for Inputs
-with st.sidebar:
-    st.header("Step 1: Data Input")
-    resume_file = st.file_uploader("Upload Resume (PDF)", type="pdf")
-    jd_text = st.text_area("Target Job Description", height=250, placeholder="Paste the JD here...")
+        # --- EXECUTE AI LOGIC (Member 1) ---
+        ai_results = get_ai_analysis(
+            data["cleaned_data"], 
+            jd_text, 
+            missing_str
+        )
+
+        # Format Rewrites for display in a single Textbox
+        rewrite_display = ""
+        for item in ai_results.get("rewrites", []):
+            rewrite_display += f"❌ BEFORE: {item['Before']}\n✅ AFTER: {item['After']}\n\n"
+
+        # 2. Return the data in the EXACT order of the UI Outputs
+        return (
+            ai_results.get("score", 0),
+            data["email"],
+            data["phone"],
+            matched_str,
+            missing_str,
+            gap["required_experience_level"],
+            ai_results.get("justification", "No justification provided."),
+            ai_results.get("career_advice", "No advice provided."),
+            rewrite_display
+        )
+
+    except Exception as e:
+        return 0, "Error", "Error", f"Runtime Error: {str(e)}", "", "", "", "", ""
+
+# 3. UI Design using Gradio Blocks
+with gr.Blocks(theme=gr.themes.Soft(), title="AI Resume Mentor") as demo:
+    gr.Markdown("# 🚀 AI Resume Analyser & Career Mentor")
+    gr.Markdown("### Upload your resume and job description to get AI-powered insights.")
     
-    # The Trigger Button
-    analyze_btn = st.button("🔍 Analyze & Rewrite")
+    with gr.Row():
+        with gr.Column(scale=1):
+            resume_input = gr.File(label="📂 Upload Resume (PDF)")
+            jd_input = gr.Textbox(label="📌 Job Description", lines=10, placeholder="Paste requirements here...")
+            analyze_btn = gr.Button("🔍 Analyze & Rewrite", variant="primary")
 
-# 4. Processing Logic
-if analyze_btn:
-    if resume_file and jd_text.strip():
-        with st.spinner("🤖 AI is analyzing your profile..."):
-            try:
-                # --- CALLING MEMBER 2 (Parser) ---
-                data = process_everything(resume_file)
-                gap_results = analyze_keyword_gap(data["cleaned_data"], jd_text)
-                
-                missing_str = ", ".join(gap_results["missing_skills"]) if gap_results["missing_skills"] else "None"
-                matched_str = ", ".join(gap_results["matched_skills"]) if gap_results["matched_skills"] else "None"
+        with gr.Column(scale=2):
+            gr.Markdown("## 📊 Results Dashboard")
+            score_out = gr.Slider(0, 100, label="ATS Match Score (%)")
+            
+            with gr.Row():
+                email_out = gr.Textbox(label="📧 Email")
+                phone_out = gr.Textbox(label="📱 Phone")
+            
+            with gr.Row():
+                matched_out = gr.Textbox(label="✅ Matched Skills")
+                missing_out = gr.Textbox(label="❌ Missing Skills")
+            
+            exp_out = gr.Textbox(label="📅 Required Experience")
+            
+            gr.Markdown("---")
+            gr.Markdown("### 🧠 AI Insights")
+            with gr.Row():
+                justification_out = gr.Textbox(label="⚖️ Justification", lines=3)
+                advice_out = gr.Textbox(label="💡 Career Advice")
+            
+            rewrites_out = gr.Textbox(label="📝 Resume Rewrites (Impact-Driven)", lines=8)
 
-                # --- CALLING MEMBER 1 (AI Logic) ---
-                ai_results = get_ai_analysis(
-                    data["cleaned_data"], 
-                    jd_text, 
-                    missing_str
-                )
+    # 4. THE CONNECTION (The "Handshake")
+    # This maps the inputs to the function and the function's return values to the outputs
+    analyze_btn.click(
+        fn=run_analysis,
+        inputs=[resume_input, jd_input],
+        outputs=[
+            score_out, email_out, phone_out, 
+            matched_out, missing_out, exp_out, 
+            justification_out, advice_out, rewrites_out
+        ]
+    )
 
-                # 5. Main Results Dashboard
-                col1, col2 = st.columns([1, 2])
-                
-                with col1:
-                    st.subheader("🎯 Fit Score")
-                    score = ai_results.get("score", 0)
-                    delta_msg = "Excellent" if score > 80 else "Needs Improvement"
-                    st.metric(label="ATS Compatibility", value=f"{score}%", delta=delta_msg)
-                    
-                    st.write(f"📧 **Email:** {data['email']}")
-                    st.write(f"📱 **Phone:** {data['phone']}")
-                    st.write(f"📅 **Exp Required:** {gap_results['required_experience_level']}")
-                   
-                with col2:
-                    st.subheader("💡 AI Career Reasoning")
-                    st.info(ai_results.get("justification", "Analysis complete."))
-                    st.success(f"**Pro Tip:** {ai_results.get('career_advice', 'Keep building!')}")
-
-                st.markdown("---")
-
-                # 6. ATS Keyword Gap Analysis
-                st.subheader("📊 ATS Keyword Gap Analysis")
-                present, missing = st.columns(2)
-                with present:
-                    st.success(f"**Skills Found:**\n{matched_str}")
-                with missing:
-                    st.error(f"**Missing Keywords:**\n{missing_str}")
-
-                st.markdown("---")
-
-                # 7. AI-Rewritten Suggestions
-                st.subheader("📝 AI-Rewritten Suggestions")
-                st.caption("Focusing on impact-driven metrics rather than just tasks.")
-                
-                # Format the Rewrites for a clean table
-                rewrites = ai_results.get("rewrites", [])
-                if rewrites:
-                    # Creating a list of dicts for the table
-                    table_data = [{"Before (Task)": item["Before"], "After (Impact)": item["After"]} for item in rewrites]
-                    st.table(table_data)
-                else:
-                    st.write("No specific rewrites suggested.")
-
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
-    else:
-        st.warning("⚠️ Please upload a PDF resume and paste a Job Description to begin.")
-
-# 8. Footer
-st.markdown("---")
-st.caption("DeployIt 2026 | Team: AI Resume Mentor")
+# 5. Launch (Crucial for Colab)
+if __name__ == "__main__":
+    # share=True creates a public link for your team
+    demo.launch(share=True, debug=True)
+          
