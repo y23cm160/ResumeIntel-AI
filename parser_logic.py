@@ -44,13 +44,17 @@ def process_everything(uploaded_file):
         "phone": contact["phone"]
     }
 
+import pdfplumber
+import re
+
+# (Keep functions 1, 2, 3, and 4 exactly as you have them)
+
 def analyze_keyword_gap(resume_text, jd_text):
     # 1. Clean the Job Description text just like the resume
     clean_jd = clean_resume_text(jd_text).lower()
     resume_text_lower = resume_text.lower()
 
     # 2. Master list of Keywords (Skills, Tools, Technologies)
-    # Expand this list to cover common tech stacks
     master_keywords = [
         "python", "java", "sql", "aws", "docker", "kubernetes", "git", 
         "machine learning", "artificial intelligence", "nlp", "scikit-learn", 
@@ -58,27 +62,46 @@ def analyze_keyword_gap(resume_text, jd_text):
         "react", "node", "html", "css", "javascript", "mongodb"
     ]
 
-    # 3. Extract Years of Experience from JD (Regex pattern for "X+ years")
+    # 3. EDUCATION/QUALIFICATION CHECK (New Addition)
+    # List of common degrees to look for in the JD and Resume
+    degree_hierarchy = ["phd", "master", "m.tech", "msc", "b.tech", "b.e", "bsc", "bachelor"]
+    
+    required_degree = "Not Specified"
+    for degree in degree_hierarchy:
+        if degree in clean_jd:
+            required_degree = degree
+            break
+            
+    # Check if the candidate has the required degree (or higher)
+    has_required_education = False
+    if required_degree == "Not Specified":
+        has_required_education = True
+    else:
+        # Simple check: Does the degree keyword appear in the resume?
+        if required_degree in resume_text_lower:
+            has_required_education = True
+
+    # 4. Extract Years of Experience from JD
     experience_pattern = re.findall(r'(\d+)\+?\s*(?:years|yrs)', clean_jd)
     required_exp = experience_pattern[0] if experience_pattern else "Not Specified"
 
-    # 4. Find Matched and Missing Keywords
-    # Check what skills are mentioned in the JD
+    # 5. Find Matched and Missing Keywords
     skills_in_jd = [skill for skill in master_keywords if skill in clean_jd]
-    
-    # Check which of those JD skills are MISSING in the resume
     missing_skills = [skill for skill in skills_in_jd if skill not in resume_text_lower]
     matched_skills = [skill for skill in skills_in_jd if skill in resume_text_lower]
 
     return {
         "required_experience_level": required_exp,
+        "required_education": required_degree,
+        "education_match": "Yes" if has_required_education else "No",
         "matched_skills": matched_skills,
         "missing_skills": missing_skills,
         "total_gap_count": len(missing_skills)
     }
 
-# --- HOW TO TEST THIS NOW ---
-sample_jd = "Looking for a Python developer with 3+ years experience in AWS and Docker."
-resume_data = process_everything("ARSHIYA FIRDOUSE.pdf")
+# --- TEST IT ---
+sample_jd = "Looking for a Python developer with a B.Tech and 3+ years experience in AWS."
+# Use your resume data
+resume_data = process_everything("ARSHIYA FIRDOUSE.pdf") 
 gap_results = analyze_keyword_gap(resume_data['cleaned_data'], sample_jd)
 print(gap_results)
