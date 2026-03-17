@@ -1,4 +1,6 @@
 import streamlit as st
+from parser_logic import extract_text_from_pdf  # Member 2's code
+from ai_logic import get_ai_analysis          # Member 1's code
 
 # 1. Page Configuration (Judged Criterion: UI Design)
 st.set_page_config(page_title="AI Resume Mentor | DeployIt 2026", layout="wide")
