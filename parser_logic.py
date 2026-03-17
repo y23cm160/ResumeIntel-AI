@@ -43,3 +43,42 @@ def process_everything(uploaded_file):
         "email": contact["email"],
         "phone": contact["phone"]
     }
+
+def analyze_keyword_gap(resume_text, jd_text):
+    # 1. Clean the Job Description text just like the resume
+    clean_jd = clean_resume_text(jd_text).lower()
+    resume_text_lower = resume_text.lower()
+
+    # 2. Master list of Keywords (Skills, Tools, Technologies)
+    # Expand this list to cover common tech stacks
+    master_keywords = [
+        "python", "java", "sql", "aws", "docker", "kubernetes", "git", 
+        "machine learning", "artificial intelligence", "nlp", "scikit-learn", 
+        "pandas", "numpy", "tensorflow", "pytorch", "flask", "django", 
+        "react", "node", "html", "css", "javascript", "mongodb"
+    ]
+
+    # 3. Extract Years of Experience from JD (Regex pattern for "X+ years")
+    experience_pattern = re.findall(r'(\d+)\+?\s*(?:years|yrs)', clean_jd)
+    required_exp = experience_pattern[0] if experience_pattern else "Not Specified"
+
+    # 4. Find Matched and Missing Keywords
+    # Check what skills are mentioned in the JD
+    skills_in_jd = [skill for skill in master_keywords if skill in clean_jd]
+    
+    # Check which of those JD skills are MISSING in the resume
+    missing_skills = [skill for skill in skills_in_jd if skill not in resume_text_lower]
+    matched_skills = [skill for skill in skills_in_jd if skill in resume_text_lower]
+
+    return {
+        "required_experience_level": required_exp,
+        "matched_skills": matched_skills,
+        "missing_skills": missing_skills,
+        "total_gap_count": len(missing_skills)
+    }
+
+# --- HOW TO TEST THIS NOW ---
+sample_jd = "Looking for a Python developer with 3+ years experience in AWS and Docker."
+resume_data = process_everything("ARSHIYA FIRDOUSE.pdf")
+gap_results = analyze_keyword_gap(resume_data['cleaned_data'], sample_jd)
+print(gap_results)
