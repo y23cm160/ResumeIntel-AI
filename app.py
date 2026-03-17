@@ -20,59 +20,60 @@ with st.sidebar:
 
 # 4. Main Results Dashboard (Expected Outcome: Clean Results Dashboard)
 # 4. Main Results Dashboard (Data Pipeline Integration)
+# 4. Main Results Dashboard (Final Integrated Pipeline)
 if analyze_btn:
     if resume_file and jd_text:
-        with st.spinner("Pipeline Active: Parsing and Analyzing..."):
-            
-            # --- STEP 1: Execute Member 2's Parser ---
-            # Using the 'process_everything' function Member 2 provided
-            from parser_logic import process_everything
-            parser_results = process_everything(resume_file)
-            resume_text = parser_results["cleaned_data"]
-            
-            # Display Contact Info in the sidebar or a small box (Member 3 UI touch)
-            st.sidebar.success(f"Extracted: {parser_results['email']}")
-
-            # --- STEP 2: Execute Member 1's AI Brain ---
-            # Passing the cleaned text to Member 1's AI logic
-            analysis = get_ai_analysis(resume_text, jd_text)
-            
-            # --- STEP 3: Display Results (Dynamic Data) ---
-            col1, col2 = st.columns([1, 2])
-            
-            with col1:
-                st.subheader("🎯 Fit Score")
-                # Use the 'score' key from Member 1's JSON
-                st.metric(label="ATS Compatibility", value=f"{analysis['score']}%")
+        with st.spinner("AI is reasoning about your career narrative..."):
+            try:
+                # --- STEP 1: Member 2's Parser ---
+                from parser_logic import process_everything
+                parser_results = process_everything(resume_file)
+                resume_text = parser_results["cleaned_data"]
                 
-            with col2:
-                st.subheader("🧠 AI Career Reasoning")
-                # Use the 'justification' key from Member 1's JSON
-                st.write(f"**Justification:** {analysis['justification']}")
+                # Show contact info in sidebar (UI Polish)
+                st.sidebar.success(f"📧 {parser_results['email']}")
+                st.sidebar.info(f"📞 {parser_results['phone']}")
 
-            st.markdown("---")
+                # --- STEP 2: Member 1's AI Brain ---
+                # We identify keywords from JD that aren't in the Resume 
+                # to pass into her 'missing_keywords' parameter
+                resume_words = set(resume_text.lower().split())
+                jd_words = set(jd_text.lower().split())
+                missing_list = list(jd_words - resume_words)[:5] # Top 5 differences
 
-            # 5. ATS Keyword Gap Analysis (Dynamic)
-            st.subheader("🔍 ATS Keyword Gap Analysis")
-            present, missing = st.columns(2)
-            with present:
-                # Use 'found_keywords' from Member 1
-                st.success(f"**Skills Found:** {', '.join(analysis['found_keywords'])}")
-            with missing:
-                # Use 'missing_keywords' from Member 1
-                st.error(f"**Missing Keywords:** {', '.join(analysis['missing_keywords'])}")
+                # Calling her function with the 3 required arguments
+                analysis = get_ai_analysis(resume_text, jd_text, missing_list)
 
-            st.markdown("---")
+                # --- STEP 3: Display Results (Matching Member 1's JSON Keys) ---
+                col1, col2 = st.columns([1, 2])
+                
+                with col1:
+                    st.subheader("🎯 Fit Score")
+                    st.metric(label="Match Quality", value=f"{analysis.get('score', 0)}%")
+                    
+                with col2:
+                    st.subheader("🧠 Recruiter Justification")
+                    st.write(analysis.get('justification', "No justification provided."))
 
-            # 6. AI-Rewritten Bullets (Dynamic Table)
-            st.subheader("✍️ AI-Rewritten Suggestions")
-            st.info("AI Core Constraint: Evaluating career narrative coherence.")
-            
-            # Pass the 'rewrites' list from Member 1 directly into the table
-            st.table(analysis['rewrites'])
+                st.markdown("---")
 
+                # Displaying her specific "career_advice" key
+                st.subheader("💡 Career Tip")
+                st.info(analysis.get('career_advice', "Keep improving!"))
+
+                st.markdown("---")
+
+                # Displaying her "rewrites" with capitalized "Before" and "After"
+                st.subheader("✍️ AI-Rewritten Suggestions")
+                if analysis.get('rewrites'):
+                    st.table(analysis['rewrites'])
+                else:
+                    st.write("No rewrites generated.")
+
+            except Exception as e:
+                st.error(f"Integration Error: {e}")
     else:
-        st.warning("Please upload a PDF resume and paste a Job Description to begin.")
-        
-st.markdown("---")
-st.caption("DeployIt 2026 | Team: AI Resume Mentor")
+        st.warning("Please upload a resume and paste a JD.")
+
+            
+            
