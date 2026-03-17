@@ -1,75 +1,112 @@
-Project Overview
-Most students face rejection because their resumes fail to pass Applicant Tracking Systems (ATS) due to formatting issues, missing keywords, or weak action verbs.
+# 📄 AI Resume Mentor: ATS Analysis & Intelligent Resume Enhancement
 
-AI Resume Mentor is an AI-powered platform that analyzes resumes from a recruiter’s perspective and provides:
--Structured feedback
--ATS gap analysis
--Impact-driven rewrites
-Unlike standard rule-based checkers, this system uses LLM reasoning to evaluate career narrative coherence and role fit holistically.
-Key Features
-🔍 Structured AI Critique
-Deep analysis across multiple professional dimensions
-Evaluates clarity, impact, and role alignment
+## 🔍 Overview
 
-📊 ATS Keyword Gap Analysis
-Compares resume with job description
-Identifies missing critical skills and keywords
+This project presents an **AI-powered resume analysis platform** that evaluates resumes from a recruiter’s perspective.
 
-✍️ Impact-Driven Rewrites
-Generates improved bullet points
-Provides clear Before & After comparison
+It identifies **ATS-related issues**, missing keywords, and weak action verbs while providing **impact-driven rewrites** and structured feedback.
 
-📈 Holistic Scoring
-Overall resume score
--Supported with simple, human-readable justification
+The goal is to **improve resume quality, ATS compatibility, and role alignment**, not just keyword matching.
 
-Clean Results Dashboard
--User-friendly UI
--Designed for clarity and easy scanning
-🛠️ Technical Stack
+---
 
-LLM Engine: Gemini 1.5 Flash (Google Generative AI API)
-Frontend UI: Gradio
-PDF Processing: pdfplumber
-Data Structuring: JSON mode
+## 📁 Input Data
 
-🏗️ System Architecture
-The system follows a modular design:
+The system works with:
 
-📂 Parser (parser_logic.py)
-Extracts text from PDF resumes
-Cleans non-ASCII characters
-Uses Regex for:
-Contact details
-Experience level detection
+* **📄 Resume (PDF)** – Uploaded by the user
+* **📌 Job Description (Optional)** – Used for ATS comparison
 
-🧠 AI Engine (ai_logic.py)
-Uses engineered prompts
-Focuses on:
-Language quality
-Career narrative
-Role alignment
-Avoids simple keyword-based evaluation
+Extracted information includes:
 
-🔗 Integrator (app.py)
-Connects parser and AI engine
-Handles data flow
-Renders results in Gradio dashboard
+* Contact details
+* Skills
+* Experience
+* Resume content structure
 
-⚙️ Getting Started
-✅ Prerequisites
+---
 
-Python 3.8+
-Google Gemini API Key
+## 🧠 Methodology
 
-📥 Installation
-Clone the repository:
-git clone https://github.com/your-username/ai-resume-mentor.git
-cd ai-resume-mentor
+* Resume text extraction using PDF parsing
+* Cleaning and normalization of raw text
+* Prompt-engineered LLM analysis for:
 
-Install dependencies:
-pip install gradio google-generativeai pdfplumber
-▶️ Run the Application
-python app.py
+  * Language quality
+  * Career narrative coherence
+  * Role fit
 
+Core evaluation logic:
+
+```
+Resume Score = f(Content Quality, ATS Match, Impact Strength, Role Alignment)
+```
+
+---
+
+## 🔍 Model Analysis
+
+The system performs multi-dimensional evaluation:
+
+* **📊 Structured AI Critique**
+  Analyzes clarity, tone, and professional impact
+
+* **📌 ATS Keyword Gap Analysis**
+  Compares resume against job description to detect missing skills
+
+* **✍️ Impact Evaluation**
+  Identifies weak bullet points and suggests stronger alternatives
+
+* **📈 Holistic Scoring**
+  Generates an overall score with explanation
+
+---
+
+## 📌 Results
+
+* ✅ Improved resume clarity and professional tone
+* 📈 Better alignment with job requirements
+* 🔍 Identification of missing ATS keywords
+* ✍️ Stronger, action-oriented bullet points
+
+⚠️ Results depend on input quality and LLM interpretation.
+
+---
+
+## ⚠️ Limitations
+
+* Dependent on LLM output quality
+* No guarantee of ATS success across all platforms
+* Limited domain-specific customization
+* PDF parsing may fail for complex formats
+
+---
+
+## 🔮 Future Work
+
+* Multi-resume comparison
+* Resume template generation
+* Real-time ATS scoring visualization
+* Integration with job portals
+* Domain-specific optimization (Tech, Finance, etc.)
+
+---
+
+## 🛠️ Tools Used
+
+* Python
+* Gradio
+* Google Generative AI (Gemini 1.5 Flash)
+* pdfplumber
+* JSON
+
+---
+
+## 🧾 Final Note
+
+This project goes beyond rule-based systems by leveraging **LLM reasoning** to evaluate resumes holistically.
+
+It demonstrates a strong understanding of **AI-driven text analysis, ATS optimization, and real-world application design**.
+
+---
 
