@@ -1,0 +1,4 @@
+streamlit
+google-generativeai
+pdfplumber or PyPDF2
+python-dotenv
